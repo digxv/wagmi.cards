@@ -10,6 +10,14 @@ contract Web3GiftsNFT is ERC721, ERC721Enumerable, ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter public _tokenIDs;
 
+    struct Gift {
+        uint256 tokenID;
+        uint256 amount;
+        bool redeemed;
+    }
+
+    mapping(uint256 => Gift) private gifts;
+
     constructor(
         string memory _name,
         string memory _symbol,
@@ -22,12 +30,39 @@ contract Web3GiftsNFT is ERC721, ERC721Enumerable, ERC721URIStorage {
         return contract_metadata;
     }
 
-    function mintGift(string memory uri) public returns (uint256) {
+    function mint(string memory uri) public payable returns (uint256) {
+        require(msg.value > 0, "Gift cannot be worth 0 ETH");
+
         _tokenIDs.increment();
         uint256 newID = _tokenIDs.current();
+
+        gifts[newID] = Gift(newID, msg.value, false);
+
         _safeMint(msg.sender, newID);
         _setTokenURI(newID, uri);
         return newID;
+    }
+
+    function redeem(uint256 tokenID) public returns (uint256) {
+        Gift memory gift = gifts[tokenID];
+        require(gift.redeemed == false, "Gift has already been redeemed");
+
+        address tokenOwner = ownerOf(tokenID);
+        require(tokenOwner == msg.sender, "You do not own this gift");
+
+        payable(msg.sender).transfer(gift.amount);
+        gifts[tokenID].redeemed = true;
+
+        return gift.amount;
+    }
+
+    function transferToken(
+        address from,
+        address to,
+        uint256 tokenID
+    ) public returns (bool) {
+        super.safeTransferFrom(from, to, tokenID);
+        return true;
     }
 
     function _beforeTokenTransfer(
