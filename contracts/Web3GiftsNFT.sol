@@ -17,6 +17,7 @@ contract Web3GiftsNFT is ERC721, ERC721Enumerable, ERC721URIStorage {
     }
 
     mapping(uint256 => Gift) private gifts;
+    mapping(address => uint256[]) private ownerGifts;
 
     constructor(
         string memory _name,
@@ -30,17 +31,38 @@ contract Web3GiftsNFT is ERC721, ERC721Enumerable, ERC721URIStorage {
         return contract_metadata;
     }
 
-    function mint(string memory uri) public payable returns (uint256) {
+    function mint(string memory uri, address ownerAddress) public payable returns (uint256) {
         require(msg.value > 0, "Gift cannot be worth 0 ETH");
 
         _tokenIDs.increment();
         uint256 newID = _tokenIDs.current();
 
-        gifts[newID] = Gift(newID, msg.value, false);
+        Gift memory newGift = Gift({
+            tokenID: newID,
+            amount: msg.value,
+            redeemed: false
+        });
+
+        gifts[newID] = newGift;
+        ownerGifts[ownerAddress].push(newID);
 
         _safeMint(msg.sender, newID);
         _setTokenURI(newID, uri);
+
+        transferToken(msg.sender, ownerAddress, newID);
+
         return newID;
+    }
+
+    function getAllGifts(address owner) public view returns (Gift[] memory) {
+
+        Gift[] memory result = new Gift[](ownerGifts[owner].length);
+
+        for (uint256 i = 0; i < ownerGifts[owner].length; i++) {
+            result[i] = gifts[ownerGifts[owner][i]];
+        }
+
+        return result;
     }
 
     function redeem(uint256 tokenID) public returns (uint256) {
