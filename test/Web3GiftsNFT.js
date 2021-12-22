@@ -27,11 +27,11 @@ describe("Web3 Gifts contract", () => {
             let ac1_balance_prev = await ac1.getBalance();
             ac1_balance_prev = Number(ac1_balance_prev.toString());
 
-            await web3gifts.mint("ipfs://", {value: ethers.utils.parseEther("1")});
+            await web3gifts.mint("ipfs://", ac2.address, {value: ethers.utils.parseEther("1")});
             const tokenURI = await web3gifts.tokenURI(1);
             const owner = await web3gifts.ownerOf(1);
             expect(tokenURI).to.be.equal("ipfs://");
-            expect(owner).to.be.equal(ac1.address);
+            expect(owner).to.be.equal(ac2.address);
 
             let ac1_balance_new = await ac1.getBalance();
             ac1_balance_new = Number(ac1_balance_new.toString());
@@ -39,19 +39,21 @@ describe("Web3 Gifts contract", () => {
             expect(ac1_balance_prev).to.be.greaterThan(ac1_balance_new);
         });
 
-        it("Transfer NFT", async() => {
-            await web3gifts.mint("ipfs://", {value: ethers.utils.parseEther("1")});
-            await web3gifts.transferToken(ac1.address, ac2.address, 1);
-            const owner = await web3gifts.ownerOf(1);
-            expect(owner).to.be.equal(ac2.address);
-        });
+        it("Get Gifts", async () => {
+            await web3gifts.mint("ipfs://", ac2.address, {value: ethers.utils.parseEther("1")});
+            await web3gifts.mint("ipfs://", ac2.address, {value: ethers.utils.parseEther("1")});
+            await web3gifts.mint("ipfs://", ac2.address, {value: ethers.utils.parseEther("1")});
+
+            const result = await web3gifts.getAllGifts(ac2.address);
+
+            expect(result).to.have.lengthOf(3);
+        })
 
         it("Redeem", async() => {
             let ac2_balance_prev = await ac2.getBalance();
             ac2_balance_prev = Number(ac2_balance_prev.toString());
 
-            await web3gifts.mint("ipfs://", {value: ethers.utils.parseEther("1")});
-            await web3gifts.transferToken(ac1.address, ac2.address, 1);
+            await web3gifts.mint("ipfs://", ac2.address, {value: ethers.utils.parseEther("1")});
             await web3gifts.connect(ac2).redeem(1);
 
             let ac2_balance_new = await ac2.getBalance();
