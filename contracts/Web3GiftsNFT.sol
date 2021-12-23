@@ -26,7 +26,8 @@ contract Web3GiftsNFT is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage {
     mapping(uint256 => Gift) private gifts;
     mapping(address => uint256[]) private ownerGifts;
 
-    uint giftCharge = 0.01 ether;
+    uint public _giftCharge = 0.01 ether;
+    bool public _scheduledRedeemSwitch = true;
 
     constructor(
         string memory _name,
@@ -41,7 +42,7 @@ contract Web3GiftsNFT is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage {
     }
 
     function mint(string memory uri, address ownerAddress, uint256 redeem_at, string memory message) public payable returns (uint256) {
-        require(msg.value > giftCharge, "Gift cannot be lesser than 0.01 ETH");
+        require(msg.value > _giftCharge, "Gift cannot be lesser than 0.01 ETH");
 
         // check if message length is greater than 140 chars
         require(bytes(message).length <= 140, "Message cannot be greater than 140 characters");
@@ -49,7 +50,7 @@ contract Web3GiftsNFT is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage {
         _tokenIDs.increment();
         uint256 newID = _tokenIDs.current();
 
-        uint256 amount = msg.value - giftCharge;
+        uint256 amount = msg.value - _giftCharge;
 
         Gift memory newGift = Gift({
             tokenID: newID,
@@ -90,7 +91,7 @@ contract Web3GiftsNFT is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage {
         address tokenOwner = ownerOf(tokenID);
         require(tokenOwner == msg.sender, "You do not own this gift");
 
-        if(gift.redeem_at > 0){
+        if(gift.redeem_at > 0 && _scheduledRedeemSwitch){
             require(gift.redeem_at < block.timestamp, "Gift can't be redeemed yet");
         }
 
@@ -171,5 +172,13 @@ contract Web3GiftsNFT is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage {
     function overrideRedeemTime(uint256 tokenID, uint256 timestamp) public onlyOwner returns(Gift memory)  {
         gifts[tokenID].redeem_at = timestamp;
         return gifts[tokenID];
+    }
+
+    function overrideRedeemTime(uint256 updatedCharge) public onlyOwner {
+        _giftCharge = updatedCharge;
+    }
+
+    function updateScheduleRedeemSwitch(bool switchStatus) public onlyOwner {
+        _scheduledRedeemSwitch = switchStatus;
     }
 }
