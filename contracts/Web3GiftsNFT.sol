@@ -4,8 +4,10 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Web3GiftsNFT is ERC721, ERC721Enumerable, ERC721URIStorage {
+
+contract Web3GiftsNFT is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage {
     string public contract_metadata;
     using Counters for Counters.Counter;
     Counters.Counter public _tokenIDs;
@@ -14,10 +16,17 @@ contract Web3GiftsNFT is ERC721, ERC721Enumerable, ERC721URIStorage {
         uint256 tokenID;
         uint256 amount;
         bool redeemed;
+        address from;
+        uint256 redeem_at;
     }
+    
+    event GiftMintedToOwner(address indexed previousOwner,address indexed newOwner);
+    event GiftRedeemed(address indexed owner,uint256 indexed tokenID);
 
     mapping(uint256 => Gift) private gifts;
     mapping(address => uint256[]) private ownerGifts;
+
+    uint giftCharge = 0.01 ether;
 
     constructor(
         string memory _name,
@@ -31,16 +40,23 @@ contract Web3GiftsNFT is ERC721, ERC721Enumerable, ERC721URIStorage {
         return contract_metadata;
     }
 
-    function mint(string memory uri, address ownerAddress) public payable returns (uint256) {
-        require(msg.value > 0, "Gift cannot be worth 0 ETH");
+    function mint(string memory uri, address ownerAddress, uint256 redeem_at, string memory message) public payable returns (uint256) {
+        require(msg.value > giftCharge, "Gift cannot be lesser than 0.01 ETH");
+
+        // check if message length is greater than 140 chars
+        require(bytes(message).length <= 140, "Message cannot be greater than 140 characters");
 
         _tokenIDs.increment();
         uint256 newID = _tokenIDs.current();
 
+        uint256 amount = msg.value - giftCharge;
+
         Gift memory newGift = Gift({
             tokenID: newID,
-            amount: msg.value,
-            redeemed: false
+            amount: amount,
+            redeemed: false,
+            redeem_at: redeem_at,
+            from: msg.sender
         });
 
         gifts[newID] = newGift;
@@ -50,6 +66,8 @@ contract Web3GiftsNFT is ERC721, ERC721Enumerable, ERC721URIStorage {
         _setTokenURI(newID, uri);
 
         transferToken(msg.sender, ownerAddress, newID);
+
+        emit GiftMintedToOwner(msg.sender, ownerAddress);
 
         return newID;
     }
@@ -72,8 +90,14 @@ contract Web3GiftsNFT is ERC721, ERC721Enumerable, ERC721URIStorage {
         address tokenOwner = ownerOf(tokenID);
         require(tokenOwner == msg.sender, "You do not own this gift");
 
+        if(gift.redeem_at > 0){
+            require(gift.redeem_at < block.timestamp, "Gift can't be redeemed yet");
+        }
+
         payable(msg.sender).transfer(gift.amount);
         gifts[tokenID].redeemed = true;
+
+        emit GiftRedeemed(msg.sender, tokenID);
 
         return gift.amount;
     }
@@ -81,8 +105,14 @@ contract Web3GiftsNFT is ERC721, ERC721Enumerable, ERC721URIStorage {
     function redeemAll() public {
         for (uint256 i = 0; i < ownerGifts[msg.sender].length; i++) {
             if(!gifts[ownerGifts[msg.sender][i]].redeemed) {
+                if(gifts[ownerGifts[msg.sender][i]].redeem_at > 0){
+                    require(gifts[ownerGifts[msg.sender][i]].redeem_at < block.timestamp, "Gift can't be redeemed yet");
+                }
+
                 payable(msg.sender).transfer(gifts[ownerGifts[msg.sender][i]].amount);
                 gifts[ownerGifts[msg.sender][i]].redeemed = true;
+
+                emit GiftRedeemed(msg.sender, gifts[ownerGifts[msg.sender][i]].tokenID);
             }
         }
     }
@@ -131,5 +161,15 @@ contract Web3GiftsNFT is ERC721, ERC721Enumerable, ERC721URIStorage {
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
+    }
+
+    function withdraw() public onlyOwner {
+        uint balance = address(this).balance;
+        payable(msg.sender).transfer(balance);
+    }
+
+    function overrideRedeemTime(uint256 tokenID, uint256 timestamp) public onlyOwner returns(Gift memory)  {
+        gifts[tokenID].redeem_at = timestamp;
+        return gifts[tokenID];
     }
 }

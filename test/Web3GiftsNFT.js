@@ -27,7 +27,7 @@ describe("Web3 Gifts contract", () => {
             let ac1_balance_prev = await ac1.getBalance();
             ac1_balance_prev = Number(ac1_balance_prev.toString());
 
-            await web3gifts.mint("ipfs://", ac2.address, {value: ethers.utils.parseEther("1")});
+            await web3gifts.mint("ipfs://", ac2.address, 1234, "Hello, merry christmas!", {value: ethers.utils.parseEther("1")});
             const tokenURI = await web3gifts.tokenURI(1);
             const owner = await web3gifts.ownerOf(1);
             expect(tokenURI).to.be.equal("ipfs://");
@@ -40,9 +40,9 @@ describe("Web3 Gifts contract", () => {
         });
 
         it("Get Gifts", async () => {
-            await web3gifts.mint("ipfs://", ac2.address, {value: ethers.utils.parseEther("1")});
-            await web3gifts.mint("ipfs://", ac2.address, {value: ethers.utils.parseEther("1")});
-            await web3gifts.mint("ipfs://", ac2.address, {value: ethers.utils.parseEther("1")});
+            await web3gifts.mint("ipfs://", ac2.address, 1234, "Hello, merry christmas!", {value: ethers.utils.parseEther("1")});
+            await web3gifts.mint("ipfs://", ac2.address, 1234, "Hello, merry christmas!", {value: ethers.utils.parseEther("1")});
+            await web3gifts.mint("ipfs://", ac2.address, 1234, "Hello, merry christmas!", {value: ethers.utils.parseEther("1")});
 
             const result = await web3gifts.getAllGifts(ac2.address);
 
@@ -53,7 +53,7 @@ describe("Web3 Gifts contract", () => {
             let ac2_balance_prev = await ac2.getBalance();
             ac2_balance_prev = Number(ac2_balance_prev.toString());
 
-            await web3gifts.mint("ipfs://", ac2.address, {value: ethers.utils.parseEther("1")});
+            await web3gifts.mint("ipfs://", ac2.address, 1234, "Hello, merry christmas!", {value: ethers.utils.parseEther("1")});
             await web3gifts.connect(ac2).redeem(1);
 
             let ac2_balance_new = await ac2.getBalance();
@@ -63,9 +63,9 @@ describe("Web3 Gifts contract", () => {
         })
 
         it("Redeem All", async () => {
-            await web3gifts.mint("ipfs://", ac2.address, {value: ethers.utils.parseEther("1")});
-            await web3gifts.mint("ipfs://", ac2.address, {value: ethers.utils.parseEther("1")});
-            await web3gifts.mint("ipfs://", ac2.address, {value: ethers.utils.parseEther("1")});
+            await web3gifts.mint("ipfs://", ac2.address, 1234, "Hello, merry christmas!", {value: ethers.utils.parseEther("1")});
+            await web3gifts.mint("ipfs://", ac2.address, 1234, "Hello, merry christmas!", {value: ethers.utils.parseEther("1")});
+            await web3gifts.mint("ipfs://", ac2.address, 1234, "Hello, merry christmas!", {value: ethers.utils.parseEther("1")});
 
             const result_prev = await web3gifts.getAllGifts(ac2.address);
 
