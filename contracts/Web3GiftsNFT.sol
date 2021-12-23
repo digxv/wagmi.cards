@@ -78,6 +78,15 @@ contract Web3GiftsNFT is ERC721, ERC721Enumerable, ERC721URIStorage {
         return gift.amount;
     }
 
+    function redeemAll() public {
+        for (uint256 i = 0; i < ownerGifts[msg.sender].length; i++) {
+            if(!gifts[ownerGifts[msg.sender][i]].redeemed) {
+                payable(msg.sender).transfer(gifts[ownerGifts[msg.sender][i]].amount);
+                gifts[ownerGifts[msg.sender][i]].redeemed = true;
+            }
+        }
+    }
+
     function transferToken(
         address from,
         address to,

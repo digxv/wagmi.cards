@@ -61,5 +61,25 @@ describe("Web3 Gifts contract", () => {
 
             expect(ac2_balance_new).to.be.greaterThan(ac2_balance_prev);
         })
+
+        it("Redeem All", async () => {
+            await web3gifts.mint("ipfs://", ac2.address, {value: ethers.utils.parseEther("1")});
+            await web3gifts.mint("ipfs://", ac2.address, {value: ethers.utils.parseEther("1")});
+            await web3gifts.mint("ipfs://", ac2.address, {value: ethers.utils.parseEther("1")});
+
+            const result_prev = await web3gifts.getAllGifts(ac2.address);
+
+            result_prev.forEach(gift => {
+                expect(gift.redeemed).to.be.false;
+            })
+
+            await web3gifts.connect(ac2).redeemAll();
+
+            const result_new = await web3gifts.getAllGifts(ac2.address);
+
+            result_new.forEach(gift => {
+                expect(gift.redeemed).to.be.true;
+            })
+        })
     })
 })
