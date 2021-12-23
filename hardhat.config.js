@@ -1,6 +1,7 @@
 require("dotenv").config();
 require("@nomiclabs/hardhat-waffle");
 require("solidity-coverage");
+require("@nomiclabs/hardhat-etherscan");
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -20,5 +21,8 @@ module.exports = {
       url: process.env.INFURA_URL,
       accounts: [`0x${process.env.PRIVATE_KEY}`]
     }
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY
   }
 };
