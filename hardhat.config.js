@@ -21,7 +21,12 @@ module.exports = {
       url: process.env.RINKEBY_STAGING_ALCHEMY_KEY,
       accounts: [process.env.RINKEBY_PRIVATE_KEY],
     },
+    // mainnet: {
+    //   url: process.env.RINKEBY_STAGING_ALCHEMY_KEY,
+    //   accounts: [process.env.RINKEBY_PRIVATE_KEY],
+    // },
   },
+  // gas...,
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY
   }

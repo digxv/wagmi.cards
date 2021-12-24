@@ -44,7 +44,7 @@ contract WagmiCards is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage {
     }
 
     function mint(address ownerAddress, uint256 redeem_at, string memory message) public payable returns (uint256) {
-        require(msg.value > _giftCharge, "Gift cannot be lesser than 0.01 ETH");
+        require(msg.value > _giftCharge, "Gift cannot be lesser than gift charge");
 
         // check if message length is greater than 140 chars
         require(bytes(message).length <= 140, "Message cannot be greater than 140 characters");
@@ -185,8 +185,17 @@ contract WagmiCards is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage {
     }
 
     function withdraw() public onlyOwner {
-        uint balance = address(this).balance;
-        payable(msg.sender).transfer(balance);
+
+        uint redeemableBalanceForOwners = address(this).balance;
+
+        for (uint256 i = 0; i < _tokenIDs.current(); i++) {
+            if(!gifts[i].redeemed) {
+                redeemableBalanceForOwners -= gifts[i].amount;
+            }
+        }
+
+        require(redeemableBalanceForOwners > 0, "0 balance");
+        payable(msg.sender).transfer(redeemableBalanceForOwners);
     }
 
     function overrideRedeemTime(uint256 tokenID, uint256 timestamp) public onlyOwner returns(Gift memory)  {
