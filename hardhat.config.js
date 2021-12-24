@@ -21,8 +21,15 @@ module.exports = {
       url: process.env.RINKEBY_STAGING_ALCHEMY_KEY,
       accounts: [process.env.RINKEBY_PRIVATE_KEY],
     },
+    matic: {
+      url: process.env.POLYGON_ALCHEMY_KEY,
+      accounts: [process.env.RINKEBY_PRIVATE_KEY],
+    }
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY
-  }
+  },
+  // polyscan: {
+  //   apiKey: process.env.POLYGON_API_KEY
+  // }
 };
