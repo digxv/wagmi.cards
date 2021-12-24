@@ -6,7 +6,7 @@ const main = async () => {
     console.log("Account balance:", (await deployer.getBalance()).toString());
 
     const Web3Gifts = await ethers.getContractFactory("WagmiCards");
-    const web3gifts = await Web3Gifts.deploy("wagmi.cards", "wagmi.cards", "ipfs://QmXqUMkNLRdpjHfwoAomzXPz9HfTLMZVsnjsX9HwbHJaBe");
+    const web3gifts = await Web3Gifts.deploy("wagmi.cards", "wagmi.cards", "https://www.wagmi.cards/contract-metadata.json");
 
     console.log("Contract address:", web3gifts.address);
 }

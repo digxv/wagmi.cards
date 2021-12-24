@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+import "./libraries/Base64.sol";
+
 
 contract WagmiCards is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage {
     string public contract_metadata;
@@ -41,7 +43,7 @@ contract WagmiCards is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage {
         return contract_metadata;
     }
 
-    function mint(string memory uri, address ownerAddress, uint256 redeem_at, string memory message) public payable returns (uint256) {
+    function mint(address ownerAddress, uint256 redeem_at, string memory message) public payable returns (uint256) {
         require(msg.value > _giftCharge, "Gift cannot be lesser than 0.01 ETH");
 
         // check if message length is greater than 140 chars
@@ -63,8 +65,26 @@ contract WagmiCards is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage {
         gifts[newID] = newGift;
         ownerGifts[ownerAddress].push(newID);
 
+        string memory json = Base64.encode(
+            bytes(
+                string(
+                    abi.encodePacked(
+                        '{"name": "Wagmi Card #',
+                        toString(newID),
+                        '", "description": "',
+                        message, '. Redeem at https://wagmi.cards/redeem-gift',
+                        '", "image": "https://www.wagmi.cards/opensea-thumbnail.png"}'
+                    )
+                )
+            )
+        );
+
+        string memory finalTokenUri = string(
+            abi.encodePacked("data:application/json;base64,", json)
+        );
+
         _safeMint(msg.sender, newID);
-        _setTokenURI(newID, uri);
+        _setTokenURI(newID, finalTokenUri);
 
         transferToken(msg.sender, ownerAddress, newID);
 
@@ -184,5 +204,26 @@ contract WagmiCards is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage {
 
     function updateContractMetadata(string memory metadata) public onlyOwner {
         contract_metadata = metadata;
+    }
+    function toString(uint256 value) internal pure returns (string memory) {
+        // Inspired by OraclizeAPI's implementation - MIT license
+        // https://github.com/oraclize/ethereum-api/blob/b42146b063c7d6ee1358846c198246239e9360e8/oraclizeAPI_0.4.25.sol
+
+        if (value == 0) {
+            return "0";
+        }
+        uint256 temp = value;
+        uint256 digits;
+        while (temp != 0) {
+            digits++;
+            temp /= 10;
+        }
+        bytes memory buffer = new bytes(digits);
+        while (value != 0) {
+            digits -= 1;
+            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));
+            value /= 10;
+        }
+        return string(buffer);
     }
 }
