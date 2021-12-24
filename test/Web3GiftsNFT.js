@@ -4,7 +4,7 @@ describe("Web3 Gifts contract", () => {
     let Web3Gifts, web3gifts, ac1, ac2, acs;
 
     beforeEach(async() => {
-        Web3Gifts = await ethers.getContractFactory("Web3GiftsNFT");
+        Web3Gifts = await ethers.getContractFactory("WagmiCards");
         web3gifts = await Web3Gifts.deploy("Web3Gifts", "W3G", "ipfs://");
         [ac1, ac2, ...acs] = await ethers.getSigners();
     });

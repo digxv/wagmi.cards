@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 
-contract Web3GiftsNFT is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage {
+contract WagmiCards is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage {
     string public contract_metadata;
     using Counters for Counters.Counter;
     Counters.Counter public _tokenIDs;
@@ -174,11 +174,15 @@ contract Web3GiftsNFT is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage {
         return gifts[tokenID];
     }
 
-    function overrideRedeemTime(uint256 updatedCharge) public onlyOwner {
+    function overrideGiftCharge(uint256 updatedCharge) public onlyOwner {
         _giftCharge = updatedCharge;
     }
 
     function updateScheduleRedeemSwitch(bool switchStatus) public onlyOwner {
         _scheduledRedeemSwitch = switchStatus;
+    }
+
+    function updateContractMetadata(string memory metadata) public onlyOwner {
+        contract_metadata = metadata;
     }
 }
